@@ -70,3 +70,39 @@ inline void dma_init(void)
 	dma_channel_write_config(DMA_CHANNEL, &dmach_conf);
 	dma_channel_enable(DMA_CHANNEL);
 };
+
+void DMA_SetupBlock( volatile DMA_CH_t * channel,
+const void * srcAddr,
+DMA_CH_SRCRELOAD_t srcReload,
+DMA_CH_SRCDIR_t srcDirection,
+void * destAddr,
+DMA_CH_DESTRELOAD_t destReload,
+DMA_CH_DESTDIR_t destDirection,
+uint16_t blockSize,
+DMA_CH_BURSTLEN_t burstMode,
+uint8_t repeatCount,
+bool useRepeat )
+{
+	channel->SRCADDR0 = (( (uint16_t) srcAddr) >> 0*8 ) & 0xFF;
+	channel->SRCADDR1 = (( (uint16_t) srcAddr) >> 1*8 ) & 0xFF;
+	channel->SRCADDR2 = 0;
+
+	channel->DESTADDR0 = (( (uint16_t) destAddr) >> 0*8 ) & 0xFF;
+	channel->DESTADDR1 = (( (uint16_t) destAddr) >> 1*8 ) & 0xFF;
+	channel->DESTADDR2 = 0;
+
+	channel->ADDRCTRL = (uint8_t) srcReload | srcDirection |
+	destReload | destDirection;
+	channel->TRFCNT = blockSize;
+	channel->CTRLA = ( channel->CTRLA & ~( DMA_CH_BURSTLEN_gm | DMA_CH_REPEAT_bm ) ) |
+	burstMode | ( useRepeat ? DMA_CH_REPEAT_bm : 0);
+
+	if ( useRepeat ) {
+		channel->REPCNT = repeatCount;
+	}
+}
+
+void DMA_EnableSingleShot( volatile DMA_CH_t * channel )
+{
+	channel->CTRLA |= DMA_CH_SINGLE_bm;
+}

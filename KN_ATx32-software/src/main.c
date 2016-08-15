@@ -4,6 +4,17 @@
 #include <asf.h>
 #include <init.h>
 #include <stdio.h>
+//#include <dma_driver.h>
+
+
+#define DMA_TX_Channel &DMA.CH0
+#define DMA_RX_Channel &DMA.CH1
+
+
+#define TEST_CHARS  20
+
+static char Tx_Buf[TEST_CHARS];
+static char Rx_Buf[TEST_CHARS];
 
 int main (void)
 {
@@ -22,31 +33,7 @@ int main (void)
 	ioport_set_pin_level(LED_GREEN,0);
 	ioport_set_pin_level(LED_BLUE,1);
 	
-	
-	for (char i=0;i<DMA_BUFFER_SIZE;i++)
-	{
-		source[i]=i;
-	}
-
-	destination.a=1;
-	destination.b=2;
-	destination.c=3;
-
-	
 	delay_ms(1000);
-	
-	dma_init();
-	
-	char str[50];
-	int counter=sprintf(str,"First : \r.a = %d\r.b = %d\r.c = %d",destination.a,destination.b,destination.c);
-	for(char i=0;i<counter;i++)usart_putchar(USART_SERIAL,str[i]);
-	
-	dma_channel_trigger_block_transfer(DMA_CHANNEL);
-
-	delay_ms(5);
-	
-	counter=sprintf(str,"\r\r\r\r\rSecond : \r.a = %d\r.b = %d\r.c = %d",destination.a,destination.b,destination.c);
-	for(char i=0;i<counter;i++)usart_putchar(USART_SERIAL,str[i]);
 	
 	while(1)
 	{
@@ -60,4 +47,45 @@ ISR(USARTE0_RXC_vect)
 {
 	ioport_toggle_pin_level(LED_BLUE);
 	char a= usart_getchar(USART_SERIAL);
+}
+
+void SetupTransmitChannel( void )
+{
+	DMA_SetupBlock(
+	DMA_TX_Channel,
+	Tx_Buf,
+	DMA_CH_SRCRELOAD_NONE_gc,
+	DMA_CH_SRCDIR_INC_gc,
+	(void *) &USART.DATA,
+	DMA_CH_DESTRELOAD_NONE_gc,
+	DMA_CH_DESTDIR_FIXED_gc,
+	TEST_CHARS,
+	DMA_CH_BURSTLEN_1BYTE_gc,
+	0, // Perform once
+	false
+	);
+	DMA_EnableSingleShot( DMA_TX_Channel);
+	// USART Trigger source, Data Register Empty, 0x4C
+	dma_channel_set_trigger_source(DMA_TX_Channel,DMA_CH_TRIGSRC_USARTE0_DRE_gc);
+}
+
+void SetupReceiveChannel( void )
+{
+	DMA_SetupBlock(
+	DMA_RX_Channel,
+	(void *) &USART.DATA,
+	DMA_CH_SRCRELOAD_NONE_gc,
+	DMA_CH_SRCDIR_FIXED_gc,
+	Rx_Buf,
+	DMA_CH_DESTRELOAD_NONE_gc,
+	DMA_CH_DESTDIR_INC_gc,
+	TEST_CHARS,
+	DMA_CH_BURSTLEN_1BYTE_gc,
+	0, // Perform once
+	false
+	);
+	
+	DMA_EnableSingleShot( DMA_RX_Channel );
+	// USART Trigger source, Receive complete
+	dma_channel_set_trigger_source(DMA_RX_Channel,DMA_CH_TRIGSRC_USARTE0_RXC_gc);
 }

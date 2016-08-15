@@ -12,6 +12,8 @@
 #include <conf_board.h>
 #include <asf.h>
 
+#define USART                     USARTE0
+
 #define USART_SERIAL                     &USARTE0
 #define USART_SERIAL_BAUDRATE            9600
 #define USART_SERIAL_CHAR_LENGTH         USART_CHSIZE_8BIT_gc
@@ -39,5 +41,18 @@ void Usart_init();
 
 void dma_init(void);
 
+void DMA_SetupBlock( volatile DMA_CH_t * channel,
+const void * srcAddr,
+DMA_CH_SRCRELOAD_t srcReload,
+DMA_CH_SRCDIR_t srcDirection,
+void * destAddr,
+DMA_CH_DESTRELOAD_t destReload,
+DMA_CH_DESTDIR_t destDirection,
+uint16_t blockSize,
+DMA_CH_BURSTLEN_t burstMode,
+uint8_t repeatCount,
+bool useRepeat );
+
+void DMA_EnableSingleShot( volatile DMA_CH_t * channel );
 
 #endif /* INIT_H_ */
