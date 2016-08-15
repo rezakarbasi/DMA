@@ -16,6 +16,9 @@
 static char Tx_Buf[TEST_CHARS];
 static char Rx_Buf[TEST_CHARS];
 
+void SetupTransmitChannel( void );
+void SetupReceiveChannel( void );
+
 int main (void)
 {
 	Board_Initialize();
@@ -35,6 +38,32 @@ int main (void)
 	
 	delay_ms(1000);
 	
+	for(char i=0; i < TEST_CHARS; i++)
+	{
+		// filling in a,b,c,...,t
+		Tx_Buf[i] = 'a'+ i;
+	}
+	    
+		
+	dma_enable();
+	SetupTransmitChannel();
+	SetupReceiveChannel();
+	
+	for(char i=0; i < TEST_CHARS; i++)
+	{
+		// filling in a,b,c,...,t
+	    Tx_Buf[i] = 'a'+ i;
+    }
+				
+	dma_channel_enable( DMA_RX_Channel );
+	dma_channel_enable( DMA_TX_Channel );
+	
+	char k=0;
+	while ( dma_get_channel_status( DMA_RX_Channel ) != DMA_CH_TRANSFER_COMPLETED)
+	{
+		k++;
+	}
+	
 	while(1)
 	{
 		ioport_toggle_pin_level(LED_WHITE);
@@ -43,11 +72,11 @@ int main (void)
 	}
 }
 
-ISR(USARTE0_RXC_vect)
-{
-	ioport_toggle_pin_level(LED_BLUE);
-	char a= usart_getchar(USART_SERIAL);
-}
+// ISR(USARTE0_RXC_vect)
+// {
+// 	ioport_toggle_pin_level(LED_BLUE);
+// 	char a= usart_getchar(USART_SERIAL);
+// }
 
 void SetupTransmitChannel( void )
 {
@@ -76,7 +105,7 @@ void SetupReceiveChannel( void )
 	(void *) &USART.DATA,
 	DMA_CH_SRCRELOAD_NONE_gc,
 	DMA_CH_SRCDIR_FIXED_gc,
-	Rx_Buf,
+	Tx_Buf,
 	DMA_CH_DESTRELOAD_NONE_gc,
 	DMA_CH_DESTDIR_INC_gc,
 	TEST_CHARS,

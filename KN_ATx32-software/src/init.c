@@ -47,7 +47,7 @@ void Usart_init()
 	ioport_configure_pin(RX,IOPORT_DIR_INPUT);
 	ioport_configure_pin(TX,IOPORT_DIR_OUTPUT);
 	usart_init_rs232(USART_SERIAL, &USART_SERIAL_OPTIONS);
-	usart_set_rx_interrupt_level(USART_SERIAL,USART_INT_LVL_HI);
+	usart_set_rx_interrupt_level(USART_SERIAL,USART_INT_LVL_OFF);
 }
 
 inline void dma_init(void)
