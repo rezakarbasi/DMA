@@ -75,11 +75,19 @@ inline void dma_init(void) // only transmitter
 	dmach_conf.ctrla |= DMA_CH_SINGLE_bm;
 	//trigger source
 	dmach_conf.trigsrc = DMA_CH_TRIGSRC_USARTE0_DRE_gc;	
+	//interrupt
+	dma_channel_set_interrupt_level(&dmach_conf,DMA_INT_LVL_HI);
+	dma_set_callback(DMA_CHANNEL,DMA_Interrupt);
 	
 	dma_enable();
 	dma_channel_write_config(DMA_CHANNEL, &dmach_conf);
 	dma_channel_enable(DMA_CHANNEL);
 };
+
+void DMA_Interrupt()
+{
+	ioport_toggle_pin(LED_WHITE);
+}
 
 void DMA_SetupBlock( volatile DMA_CH_t * channel,
 const void * srcAddr,

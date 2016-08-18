@@ -31,10 +31,6 @@ int main (void)
 	
 	dma_init();
 	
-	//dma_channel_trigger_block_transfer(DMA_CHANNEL);
-	
-	//dma_channel_trigger_block_transfer(DMA_CHANNEL);
-	
 	while(1)
 	{
 		ioport_toggle_pin_level(LED_GREEN);

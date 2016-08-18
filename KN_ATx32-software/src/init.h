@@ -55,4 +55,6 @@ bool useRepeat );
 
 void DMA_EnableSingleShot( volatile DMA_CH_t * channel );
 
+void DMA_Interrupt();
+
 #endif /* INIT_H_ */
