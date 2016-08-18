@@ -8,8 +8,8 @@
 #include <init.h>
 
 
-uint8_t source[DMA_BUFFER_SIZE];
-struct Reza destination;
+//uint8_t source[DMA_BUFFER_SIZE];
+uint8_t destination[DMA_BUFFER_SIZE];
 
 void force_boot_loader(void)
 {
@@ -57,24 +57,24 @@ inline void dma_init(void) // only transmitter
 	dma_channel_set_burst_length(&dmach_conf, DMA_CH_BURSTLEN_1BYTE_gc);
 	dma_channel_set_transfer_count(&dmach_conf, DMA_BUFFER_SIZE);
 	dma_channel_set_src_reload_mode(&dmach_conf,
-	DMA_CH_SRCRELOAD_TRANSACTION_gc);														//changed transcation bood
+	DMA_CH_SRCRELOAD_NONE_gc);														//changed transcation bood
 	dma_channel_set_dest_reload_mode(&dmach_conf,
-	DMA_CH_DESTRELOAD_NONE_gc);														//changed  Atmel says : DMA_CH_DESTRELOAD_NONE_gc
-	dma_channel_set_src_dir_mode(&dmach_conf, DMA_CH_SRCDIR_INC_gc);
+	DMA_CH_DESTRELOAD_TRANSACTION_gc);														//changed  Atmel says : DMA_CH_DESTRELOAD_NONE_gc
+	dma_channel_set_src_dir_mode(&dmach_conf, DMA_CH_SRCDIR_FIXED_gc);
 	dma_channel_set_source_address(&dmach_conf,
-	(uint16_t)(uintptr_t)source);
-	dma_channel_set_dest_dir_mode(&dmach_conf, DMA_CH_DESTDIR_FIXED_gc);				//changed
-	dma_channel_set_destination_address(&dmach_conf,
 	(uint16_t)(uintptr_t)&(USARTE0.DATA));
+	dma_channel_set_dest_dir_mode(&dmach_conf, DMA_CH_DESTDIR_INC_gc);				//changed
+	dma_channel_set_destination_address(&dmach_conf,
+	(uint16_t)(uintptr_t)(destination));
 	
 	//change
 	//No Repeat
-	dmach_conf.ctrla &= ~DMA_CH_REPEAT_bm;
-	dmach_conf.repcnt = 2;
+	dmach_conf.ctrla |= DMA_CH_REPEAT_bm;
+	dmach_conf.repcnt = 0;
 	//singleshot
 	dmach_conf.ctrla |= DMA_CH_SINGLE_bm;
 	//trigger source
-	dmach_conf.trigsrc = DMA_CH_TRIGSRC_USARTE0_DRE_gc;	
+	dmach_conf.trigsrc = DMA_CH_TRIGSRC_USARTE0_RXC_gc;	
 	//interrupt
 	dma_channel_set_interrupt_level(&dmach_conf,DMA_INT_LVL_HI);
 	dma_set_callback(DMA_CHANNEL,DMA_Interrupt);
@@ -86,7 +86,9 @@ inline void dma_init(void) // only transmitter
 
 void DMA_Interrupt()
 {
+	udi_cdc_putc(destination[2]);
 	ioport_toggle_pin(LED_WHITE);
+	dma_channel_enable(DMA_CHANNEL);
 }
 
 void DMA_SetupBlock( volatile DMA_CH_t * channel,

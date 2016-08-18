@@ -30,8 +30,8 @@ struct Reza
 	char c;
 };
 
-uint8_t source[DMA_BUFFER_SIZE];
-struct Reza destination;
+uint8_t destination[DMA_BUFFER_SIZE];
+//struct Reza destination;
 
 void force_boot_loader(void);
 
