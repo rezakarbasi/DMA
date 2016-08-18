@@ -69,12 +69,12 @@ inline void dma_init(void) // only transmitter
 	
 	//change
 	//No Repeat
-	dmach_conf.ctrla |= DMA_CH_REPEAT_bm;
-	dmach_conf.repcnt = 0;
+	dmach_conf.ctrla &= ~DMA_CH_REPEAT_bm;
+	dmach_conf.repcnt = 2;
 	//singleshot
 	dmach_conf.ctrla |= DMA_CH_SINGLE_bm;
 	//trigger source
-	dmach_conf.trigsrc = DMA_CH_TRIGSRC_OFF_gc;	
+	dmach_conf.trigsrc = DMA_CH_TRIGSRC_USARTE0_DRE_gc;	
 	
 	dma_enable();
 	dma_channel_write_config(DMA_CHANNEL, &dmach_conf);

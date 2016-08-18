@@ -32,13 +32,15 @@ int main (void)
 	dma_init();
 	
 	//dma_channel_trigger_block_transfer(DMA_CHANNEL);
-
+	
+	//dma_channel_trigger_block_transfer(DMA_CHANNEL);
+	
 	while(1)
 	{
-		ioport_toggle_pin_level(LED_WHITE);
+		ioport_toggle_pin_level(LED_GREEN);
 		
 		delay_ms(1000);
-		dma_channel_trigger_block_transfer(DMA_CHANNEL);
+		dma_channel_enable(DMA_CHANNEL);
 	}
 }
 
