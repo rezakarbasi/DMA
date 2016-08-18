@@ -50,22 +50,32 @@ void Usart_init()
 	usart_set_rx_interrupt_level(USART_SERIAL,USART_INT_LVL_OFF);
 }
 
-inline void dma_init(void)
+inline void dma_init(void) // only transmitter
 {
 	struct dma_channel_config dmach_conf;
 	memset(&dmach_conf, 0, sizeof(dmach_conf));
 	dma_channel_set_burst_length(&dmach_conf, DMA_CH_BURSTLEN_1BYTE_gc);
 	dma_channel_set_transfer_count(&dmach_conf, DMA_BUFFER_SIZE);
 	dma_channel_set_src_reload_mode(&dmach_conf,
-	DMA_CH_SRCRELOAD_TRANSACTION_gc);
+	DMA_CH_SRCRELOAD_TRANSACTION_gc);														//changed transcation bood
 	dma_channel_set_dest_reload_mode(&dmach_conf,
-	DMA_CH_DESTRELOAD_TRANSACTION_gc);
+	DMA_CH_DESTRELOAD_NONE_gc);														//changed  Atmel says : DMA_CH_DESTRELOAD_NONE_gc
 	dma_channel_set_src_dir_mode(&dmach_conf, DMA_CH_SRCDIR_INC_gc);
 	dma_channel_set_source_address(&dmach_conf,
 	(uint16_t)(uintptr_t)source);
-	dma_channel_set_dest_dir_mode(&dmach_conf, DMA_CH_DESTDIR_INC_gc);
+	dma_channel_set_dest_dir_mode(&dmach_conf, DMA_CH_DESTDIR_FIXED_gc);				//changed
 	dma_channel_set_destination_address(&dmach_conf,
-	(uint16_t)(uintptr_t)&destination);
+	(uint16_t)(uintptr_t)&(USARTE0.DATA));
+	
+	//change
+	//No Repeat
+	dmach_conf.ctrla |= DMA_CH_REPEAT_bm;
+	dmach_conf.repcnt = 0;
+	//singleshot
+	dmach_conf.ctrla |= DMA_CH_SINGLE_bm;
+	//trigger source
+	dmach_conf.trigsrc = DMA_CH_TRIGSRC_OFF_gc;	
+	
 	dma_enable();
 	dma_channel_write_config(DMA_CHANNEL, &dmach_conf);
 	dma_channel_enable(DMA_CHANNEL);
