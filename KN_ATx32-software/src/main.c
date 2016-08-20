@@ -14,7 +14,9 @@ int main (void)
 	Usart_init();
 	
 	udc_start();
-	 
+	
+	spi_init();
+	
 	irq_initialize_vectors();
 	cpu_irq_enable();
 	
@@ -22,20 +24,35 @@ int main (void)
 	ioport_set_pin_level(LED_GREEN,0);
 	ioport_set_pin_level(LED_BLUE,1);
 	
-// 	source[0]='a';
-// 	source[1]='b';
-// 	source[2]='1';
-// 	source[3]='2';
+	source[0]=3;
+	source[1]=6;
+	source[2]=12;
+	source[3]=24;
 	
 	delay_ms(1000);
 	
 	dma_init();
 	
+	spi_put(&SPIC,0);
+	
 	while(1)
 	{
 		ioport_toggle_pin_level(LED_GREEN);
+		
+		delay_ms(50);
+		
+		spi_put(&SPIC,0);
+		
+		dma_channel_enable(DMA_CHANNEL);
+		
 		//udi_cdc_putc('a');
-		delay_ms(1000);
+// 		int k=1;
+// 		for(int i=0;i<10;i++)
+// 		{
+// 			delay_ms(1);
+// 			spi_put(&SPIC,k);
+// 			k=k*2;
+// 		}
 		//dma_channel_enable(DMA_CHANNEL);
 	}
 }

@@ -9,7 +9,7 @@
 
 
 //uint8_t source[DMA_BUFFER_SIZE];
-uint8_t destination[DMA_BUFFER_SIZE];
+uint8_t source[DMA_BUFFER_SIZE];
 
 void force_boot_loader(void)
 {
@@ -50,34 +50,34 @@ void Usart_init()
 	usart_set_rx_interrupt_level(USART_SERIAL,USART_INT_LVL_OFF);
 }
 
-inline void dma_init(void) // only transmitter
+inline void dma_init(void) // this project : ferestadane spi ok she
 {
 	struct dma_channel_config dmach_conf;
 	memset(&dmach_conf, 0, sizeof(dmach_conf));
 	dma_channel_set_burst_length(&dmach_conf, DMA_CH_BURSTLEN_1BYTE_gc);
 	dma_channel_set_transfer_count(&dmach_conf, DMA_BUFFER_SIZE);
 	dma_channel_set_src_reload_mode(&dmach_conf,
-	DMA_CH_SRCRELOAD_NONE_gc);														//changed transcation bood
+	DMA_CH_SRCRELOAD_TRANSACTION_gc);														//changed transcation bood
 	dma_channel_set_dest_reload_mode(&dmach_conf,
-	DMA_CH_DESTRELOAD_TRANSACTION_gc);														//changed  Atmel says : DMA_CH_DESTRELOAD_NONE_gc
-	dma_channel_set_src_dir_mode(&dmach_conf, DMA_CH_SRCDIR_FIXED_gc);
+	DMA_CH_DESTRELOAD_NONE_gc);														//changed  Atmel says : DMA_CH_DESTRELOAD_NONE_gc
+	dma_channel_set_src_dir_mode(&dmach_conf, DMA_CH_SRCDIR_INC_gc);
 	dma_channel_set_source_address(&dmach_conf,
-	(uint16_t)(uintptr_t)&(USARTE0.DATA));
-	dma_channel_set_dest_dir_mode(&dmach_conf, DMA_CH_DESTDIR_INC_gc);				//changed
+	(uint16_t)(uintptr_t)source);
+	dma_channel_set_dest_dir_mode(&dmach_conf, DMA_CH_DESTDIR_FIXED_gc);				//changed
 	dma_channel_set_destination_address(&dmach_conf,
-	(uint16_t)(uintptr_t)(destination));
+	(uint16_t)(uintptr_t)&(SPIC.DATA));
 	
 	//change
 	//No Repeat
-	dmach_conf.ctrla |= DMA_CH_REPEAT_bm;
+	dmach_conf.ctrla &= ~DMA_CH_REPEAT_bm;
 	dmach_conf.repcnt = 0;
 	//singleshot
 	dmach_conf.ctrla |= DMA_CH_SINGLE_bm;
 	//trigger source
-	dmach_conf.trigsrc = DMA_CH_TRIGSRC_USARTE0_RXC_gc;	
+	dmach_conf.trigsrc = DMA_CH_TRIGSRC_SPIC_gc;	
 	//interrupt
-	dma_channel_set_interrupt_level(&dmach_conf,DMA_INT_LVL_HI);
-	dma_set_callback(DMA_CHANNEL,DMA_Interrupt);
+	//dma_channel_set_interrupt_level(&dmach_conf,DMA_INT_LVL_HI);
+	//dma_set_callback(DMA_CHANNEL,DMA_Interrupt);
 	
 	dma_enable();
 	dma_channel_write_config(DMA_CHANNEL, &dmach_conf);
@@ -86,7 +86,7 @@ inline void dma_init(void) // only transmitter
 
 void DMA_Interrupt()
 {
-	udi_cdc_putc(destination[2]);
+	udi_cdc_putc(source[2]);
 	ioport_toggle_pin(LED_WHITE);
 	dma_channel_enable(DMA_CHANNEL);
 }
@@ -125,4 +125,17 @@ bool useRepeat )
 void DMA_EnableSingleShot( volatile DMA_CH_t * channel )
 {
 	channel->CTRLA |= DMA_CH_SINGLE_bm;
+}
+
+void spi_init (void)
+{
+	ioport_set_pin_dir(IOPORT_CREATE_PIN(PORTC,4), IOPORT_DIR_OUTPUT);
+	ioport_set_pin_dir(IOPORT_CREATE_PIN(PORTC,5), IOPORT_DIR_OUTPUT);
+	ioport_set_pin_dir(IOPORT_CREATE_PIN(PORTC,6), IOPORT_DIR_INPUT);
+	ioport_set_pin_dir(IOPORT_CREATE_PIN(PORTC,7), IOPORT_DIR_OUTPUT);
+	
+	sysclk_enable_peripheral_clock(&SPIC);
+	spi_xmega_set_baud_div(&SPIC,8000000UL,F_CPU);
+	spi_enable_master_mode(&SPIC);
+	spi_enable(&SPIC);
 }

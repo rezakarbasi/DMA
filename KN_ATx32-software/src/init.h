@@ -30,7 +30,7 @@ struct Reza
 	char c;
 };
 
-uint8_t destination[DMA_BUFFER_SIZE];
+uint8_t source[DMA_BUFFER_SIZE];
 //struct Reza destination;
 
 void force_boot_loader(void);
@@ -56,5 +56,7 @@ bool useRepeat );
 void DMA_EnableSingleShot( volatile DMA_CH_t * channel );
 
 void DMA_Interrupt();
+
+void spi_init (void);
 
 #endif /* INIT_H_ */
